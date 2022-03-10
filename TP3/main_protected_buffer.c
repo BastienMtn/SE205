@@ -122,8 +122,6 @@ int main(int argc, char *argv[]){
   set_start_time();
 
   tasks = (pthread_t *)malloc(sizeof(pthread_t)*(n_consumers+n_producers));
-  //data = (int *)malloc(sizeof(int));
-  //pthread_t threads[n_consumers+n_producers];
   
   // Create consumers and then producers. Pass the *value* of i
   // as parametre of the main procedure (main_consumer or main_producer).
