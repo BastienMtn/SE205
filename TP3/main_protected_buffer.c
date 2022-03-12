@@ -121,24 +121,24 @@ int main(int argc, char *argv[]){
 
   set_start_time();
 
-  tasks = (pthread_t *)malloc(sizeof(pthread_t)*(n_consumers+n_producers));
+  tasks = malloc(sizeof(pthread_t)*(n_consumers+n_producers));
   
   // Create consumers and then producers. Pass the *value* of i
   // as parametre of the main procedure (main_consumer or main_producer).
   for (i=0; i<n_consumers; i++) {
     int* id=malloc(sizeof(int));
     *id=i;
-    tasks[i] = pthread_create(&tasks[i], NULL, main_consumer, id);
+    pthread_create(&tasks[i], NULL, main_consumer, id);
   }
   for (i=n_consumers; i<n_producers+n_consumers; i++) {
     int* id=malloc(sizeof(int));
     *id=i;
-    tasks[i] = pthread_create(&tasks[i], NULL, main_producer, id);
+    pthread_create(&tasks[i], NULL, main_producer, id);
   }
-  
+
   // Wait for producers and consumers termination
   for (i=0; i<n_consumers+n_producers; i++) {
-    pthread_join(tasks[i], NULL);
+    printf("Exit value: %d \n", pthread_join(tasks[i], NULL));
   }
 }
 
