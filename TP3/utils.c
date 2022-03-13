@@ -21,13 +21,18 @@ long producer_period; // Period of producer (millis)
 
 // Start time as a timespec
 struct timespec start_time;
-pthread_mutex_t resync_mutex;
-pthread_cond_t  resync_condvar;
+// On ajoute un mutex et une condition pour la nouvelle fonciton delay_until
+pthread_mutex_t resync_mutex, delay_mutex;
+pthread_cond_t  resync_condvar, delay_condvar;
 
 void init_utils(){
   pthread_key_create(&task_info_key, NULL);
   pthread_mutex_init (&resync_mutex, NULL);
   pthread_cond_init (&resync_condvar, NULL);
+
+  // On initialise le mutex et la condition pour la nouvelle fonciton delay_until
+  pthread_mutex_init (&delay_mutex, NULL);
+  pthread_cond_init (&delay_condvar, NULL);
 }
 
 char sem_img[] = "BUT";
@@ -96,6 +101,7 @@ void add_millis_to_timespec (struct timespec * ts, long msec) {
 // Delay until an absolute time. Translate the absolute time into a
 // relative one and use nanosleep. This is incorrect (we fix that).
 void delay_until(struct timespec * absolute_time) {
+  /*
   struct timeval  tv_now;
   struct timespec ts_now;
   struct timespec relative_time;
@@ -111,6 +117,11 @@ void delay_until(struct timespec * absolute_time) {
   if (relative_time.tv_sec < 0) return;
   
   nanosleep (&relative_time, NULL);
+  */
+
+  pthread_mutex_lock (&delay_mutex);
+  pthread_cond_timedwait (&delay_condvar, &delay_mutex, absolute_time);
+  pthread_mutex_unlock (&delay_mutex);
 }
 
 // Compute time elapsed from start time
