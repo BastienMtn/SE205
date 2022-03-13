@@ -76,9 +76,13 @@ void cond_protected_buffer_put(protected_buffer_t * b, void * d){
 // possible immedidately, return NULL. Otherwise, return the element.
 void * cond_protected_buffer_remove(protected_buffer_t * b){
   void * d;
+  int    rc = 0;
 
   // Enter mutual exclusion
-  pthread_mutex_lock(&b->mutex);
+  rc = pthread_mutex_trylock(&b->mutex);
+  if(rc != 0){
+    return NULL;
+  }
 
   // Signal or broadcast that an empty slot is available in the
   // unprotected circular buffer (if needed)
@@ -99,9 +103,14 @@ void * cond_protected_buffer_remove(protected_buffer_t * b){
 // not possible immedidately, return 0. Otherwise, return 1.
 int cond_protected_buffer_add(protected_buffer_t * b, void * d){
   int done;
+  int rc=0;
   
   // Enter mutual exclusion
-  pthread_mutex_lock(&b->mutex);
+  rc = pthread_mutex_lock(&b->mutex);
+  if(rc!=0){
+    return 0;
+  }
+
   // Signal or broadcast that a full slot is available in the
   // unprotected circular buffer (if needed)
   if(circular_buffer_size(b->buffer)==0){
@@ -131,7 +140,8 @@ void * cond_protected_buffer_poll(protected_buffer_t * b, struct timespec *absti
   // circular buffer (circular_buffer_put) but waits no longer than
   // the given timeout.
   if(circular_buffer_size(b->buffer)==0){
-    pthread_cond_timedwait(&b->fullslot,&b->mutex,abstime);
+    rc = pthread_cond_timedwait(&b->fullslot,&b->mutex,abstime);
+    if(rc!=0) return NULL;
   }
   // Signal or broadcast that a full slot is available in the
   // unprotected circular buffer (if needed)
@@ -162,7 +172,8 @@ int cond_protected_buffer_offer(protected_buffer_t * b, void * d, struct timespe
   // circular buffer (circular_buffer_put) but waits no longer than
   // the given timeout.
   if(circular_buffer_size(b->buffer) == b->buffer->max_size){
-    pthread_cond_timedwait(&b->emptyslot,&b->mutex, abstime);
+    rc = pthread_cond_timedwait(&b->emptyslot,&b->mutex, abstime);
+    if(rc!=0) return 0;
   }
 
   // Signal or broadcast that a full slot is available in the
