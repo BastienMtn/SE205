@@ -123,7 +123,7 @@ int sem_protected_buffer_add(protected_buffer_t * b, void * d){
   print_task_activity ("add", d);
   
   // Leave mutual exclusion.
-  pthread_mutex_lock(&b->mutex);
+  pthread_mutex_unlock(&b->mutex);
 
   // Enforce synchronisation semantics using semaphores.
   sem_post(b->sem_full);
