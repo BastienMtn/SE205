@@ -5,9 +5,9 @@ import java.util.concurrent.TimeUnit;
 class NatBoundedBuffer extends BoundedBuffer {
 
    // Initialise the protected buffer structure above.
-   NatBoundedBuffer (int maxSize) {
-        super(maxSize);
-    }
+   NatBoundedBuffer(int maxSize) {
+      super(maxSize);
+   }
 
    // Extract an element from buffer. If the attempted operation is
    // not possible immediately, the method call blocks until it is.
@@ -17,18 +17,18 @@ class NatBoundedBuffer extends BoundedBuffer {
       // Enter mutual exclusion
 
       // Wait until there is a full slot available.
-      if(this.size==0){
-         try{
+      if (size == 0) {
+         try {
             wait();
-         }catch(InterruptedException e){
+         } catch (InterruptedException e) {
             System.out.println("Exception : InterruptException occurred");
-         }catch(IllegalMonitorStateException e){
+         } catch (IllegalMonitorStateException e) {
             System.out.println("Exception : IllegalMonitorStateException occurred");
          }
       }
 
       // Signal or broadcast that an empty slot is available (if needed)
-      if(this.size==this.maxSize){
+      if (size == maxSize) {
          notify();
       }
 
@@ -44,21 +44,21 @@ class NatBoundedBuffer extends BoundedBuffer {
       // Enter mutual exclusion
 
       // Wait until there is a empty slot available.
-      if(this.size==0){
-         try{
+      if (size == maxSize) {
+         try {
             wait();
-         }catch(InterruptedException e){
+         } catch (InterruptedException e) {
             System.out.println("Exception : InterruptException occurred");
-         }catch(IllegalMonitorStateException e){
+         } catch (IllegalMonitorStateException e) {
             System.out.println("Exception : IllegalMonitorStateException occurred");
          }
       }
 
       // Signal or broadcast that a full slot is available (if needed)
-      if(this.size==0){
+      if (size == 0) {
          notify();
       }
-      
+
       // Leave mutual exclusion
       return super.put(value);
    }

@@ -12,11 +12,11 @@ class Producer extends Thread {
         Integer value;
         boolean done;
         long deadline = Utils.startTime;
-
+        
+        System.out.println("Start producer "+id);
         for (int i = 0; i < (Utils.nValues/Utils.nProducers); i++) {
             Utils.resynchronize(id);
             deadline = deadline + Utils.producerPeriod;
-            System.out.println("Start producer "+id);
             value = new Integer ((int)id * 100 + i);
             switch (Utils.sem_producers) {
             case Utils.BLOCKING :
