@@ -15,7 +15,7 @@ class Consumer extends Thread {
         for (int i = 0; i < (Utils.nValues/Utils.nConsumers); i++) {
             Utils.resynchronize(id);
             deadline = deadline + Utils.consumerPeriod;
-            
+            System.out.println("Start consumer "+id);
             switch (Utils.sem_consumers) {
             case Utils.BLOCKING :
                 value = (Integer)buffer.get();

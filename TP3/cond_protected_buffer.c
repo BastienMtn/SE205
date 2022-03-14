@@ -139,9 +139,9 @@ void * cond_protected_buffer_poll(protected_buffer_t * b, struct timespec *absti
   // Wait until there is an full slot to get data from in the unprotected
   // circular buffer (circular_buffer_put) but waits no longer than
   // the given timeout.
-  if(circular_buffer_size(b->buffer)==0){
+  while(circular_buffer_size(b->buffer)==0){
     rc = pthread_cond_timedwait(&b->fullslot,&b->mutex,abstime);
-    if(rc!=0) return NULL;
+    if(rc==ETIMEDOUT) break;
   }
   // Signal or broadcast that a full slot is available in the
   // unprotected circular buffer (if needed)
