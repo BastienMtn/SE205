@@ -1,84 +1,48 @@
-OS := $(shell uname)
-ifeq ($(OS), Darwin)
-DARWIN=true
-else
-DARWIN=false
-endif
+.SUFFIXES: .p.java .java .class
+.SECONDARY:
 
-TEACHER=true
-CC=gcc
-CFLAGS=-g -Wall -DTEACHER=$(TEACHER) -DDARWIN=$(DARWIN)
-LDFLAGS=-g -DTEACHER=$(TEACHER) -pthread
+TAR=tar
+## Utiliser /usr/local/bin/tar dans le PATH ou bien faire TAR=gtar
 
-PRESOURCES_1=\
-main_protected_buffer.c\
-protected_buffer.c\
-protected_buffer.h\
-cond_protected_buffer.c\
-cond_protected_buffer.h\
-sem_protected_buffer.c\
-sem_protected_buffer.h\
-utils.c\
-utils.h\
+JAVAPREP=cpp -x c
+PREPFLAGS=-C -P
+JAVACFLAGS=
 
-SOURCES_1 = \
-circular_buffer.h\
-circular_buffer.c\
+JAVASOURCES=\
+Utils.java\
+BoundedBuffer.java\
+SemBoundedBuffer.java\
+NatBoundedBuffer.java\
+Consumer.java\
+Producer.java\
+BoundedBufferMain.java\
 
-OBJECTS_1 = \
-circular_buffer.o\
-main_protected_buffer.o\
-protected_buffer.o\
-cond_protected_buffer.o\
-sem_protected_buffer.o\
-utils.o\
+SOURCES=\
+$(JAVASOURCES)
 
-PRESOURCES = \
-$(PRESOURCES_1)\
+CLASSES=$(SOURCES:.java=.class)
 
-SOURCES = \
-$(SOURCES_1)\
-
-OBJECTS = \
-$(OBJECTS_1)\
-
-PROGS = \
-main_protected_buffer\
-
-%.c: %.p.c
+%.java: %.p.java
 	awk -f presources.awk -v TEACHER=$(TEACHER) $< >$@
 
-%.h: %.p.h
-	awk -f presources.awk -v TEACHER=$(TEACHER) $< >$@
+%.class: %.java
+	javac $(JAVACFLAGS) $<
 
-.c.o:
-	$(CC) -c $(CFLAGS) $<
+default : compile
 
-default : $(PROGS)
-
-clean : 
-	$(RM) $(OBJECTS) $(PROGS) deps *~
-
-veryclean: clean
-	$(RM) $(PRESOURCES)
-
-main_protected_buffer : $(PRESOURCES_1) $(OBJECTS_1)
-	$(CC) $(LDFLAGS) -o $@ $(OBJECTS_1) 
-
-deps: $(SOURCES) $(PRESOURCES)
-	$(CC) -M $(SOURCES) $(PRESOURCES) >deps
+compile: $(CLASSES)
 
 student:
 	@make veryclean
-	@make TEACHER=false $(PRESOURCES)
+	@make $(JAVASOURCES)
 
 teacher:
 	@make veryclean
-	@make TEACHER=true $(PRESOURCES)
+	@make PREPFLAGS="$(PREPFLAGS) -DTEACHER=true" $(JAVASOURCES)
 
 index.html: index.texi
 	makeinfo \
-	        --no-headers --html --ifinfo --no-split \
+		--no-headers --html --ifinfo --no-split \
 		--css-include=style.css $< > $@
 
 error :
@@ -91,8 +55,13 @@ install : veryclean index.html
 	@make student
 	-mkdir -p $(PREFIX)
 	chmod og=u-w $(PREFIX)
-	tar zcf src.tar.gz `cat MANIFEST` Makefile
+	tar cf src.tar $(SOURCES) Makefile
+	gzip -f src.tar
 	chmod og=u-w style.css index.html src.tar.gz
 	cp -p style.css index.html src.tar.gz $(PREFIX)
 
--include deps
+clean:
+	@-rm -f *~ *.class
+
+veryclean: clean
+	@-rm -f $(SOURCES)
