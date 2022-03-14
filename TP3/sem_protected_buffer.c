@@ -17,11 +17,17 @@ protected_buffer_t * sem_protected_buffer_init(int length) {
   protected_buffer_t * b;
   b = (protected_buffer_t *)malloc(sizeof(protected_buffer_t));
   b->buffer = circular_buffer_init(length);
+  // Creates and initializes the mutex for the buffer
+  pthread_mutex_t mutex;
+  pthread_mutex_init(&mutex, NULL);
   // Initialize the synchronization attributes
   // Use these filenames as named semaphores
   sem_unlink (EMPTY_SLOTS_NAME);
   sem_unlink (FULL_SLOTS_NAME);
   // Open the semaphores using the filenames above
+  b->sem_empty=sem_open(EMPTY_SLOTS_NAME, O_CREAT,NULL,length);
+  b->sem_full=sem_open(FULL_SLOTS_NAME, O_CREAT,NULL,0);
+
   return b;
 }
 
@@ -31,15 +37,19 @@ void * sem_protected_buffer_get(protected_buffer_t * b){
   void * d;
   
   // Enforce synchronisation semantics using semaphores.
+  sem_wait(b->sem_full);
 
   // Enter mutual exclusion.
-  
+  pthread_mutex_lock(&b->mutex);
+
   d = circular_buffer_get(b->buffer);
   print_task_activity ("get", d);
 
   // Leave mutual exclusion.
+  pthread_mutex_unlock(&b->mutex);
 
   // Enforce synchronisation semantics using semaphores.
+  sem_post(b->sem_empty);
   
   return d;
 }
@@ -49,15 +59,19 @@ void * sem_protected_buffer_get(protected_buffer_t * b){
 void sem_protected_buffer_put(protected_buffer_t * b, void * d){
 
   // Enforce synchronisation semantics using semaphores.
+  sem_wait(b->sem_empty);
 
   // Enter mutual exclusion.
-  
+  pthread_mutex_lock(&b->mutex);
+
   circular_buffer_put(b->buffer, d);
   print_task_activity ("put", d);
 
   // Leave mutual exclusion.
+  pthread_mutex_unlock(&b->mutex);
 
   // Enforce synchronisation semantics using semaphores.
+  sem_post(b->sem_full);
 }
 
 // Extract an element from buffer. If the attempted operation is not
