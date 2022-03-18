@@ -70,8 +70,11 @@ class NatBoundedBuffer extends BoundedBuffer {
       // Enter mutual exclusion
 
       // Signal or broadcast that an empty slot is available (if needed)
-
-      return super.get();
+      if (size == 0){
+         return null;
+      }else{
+         return super.get();
+      }
 
       // Leave mutual exclusion
    }
@@ -79,13 +82,15 @@ class NatBoundedBuffer extends BoundedBuffer {
    // Insert an element into buffer. If the attempted operation is
    // not possible immedidately, return 0. Otherwise, return 1.
    synchronized boolean add(Object value) {
-      boolean done;
 
       // Enter mutual exclusion
 
       // Signal or broadcast that a full slot is available (if needed)
-
-      return super.put(value);
+      if (size == maxSize) {
+         return false;
+      }else{
+         return super.put(value);
+      }
 
       // Leave mutual exclusion
    }
@@ -102,10 +107,20 @@ class NatBoundedBuffer extends BoundedBuffer {
       // Wait until a full slot is available but wait
       // no longer than the given deadline
 
-      if (size == 0)
-         return null;
-
+      if (size == 0){
+         try {
+            wait(deadline);
+         } catch (InterruptedException e) {
+            System.out.println("Exception : InterruptException occurred");
+         } catch (IllegalMonitorStateException e) {
+            System.out.println("Exception : IllegalMonitorStateException occurred");
+         }
+      }
+      
       // Signal or broadcast that an full slot is available (if needed)
+      if (size == maxSize) {
+         notify();
+      }
 
       return super.get();
 
@@ -123,15 +138,22 @@ class NatBoundedBuffer extends BoundedBuffer {
 
       // Wait until a empty slot is available but wait
       // no longer than the given deadline
+      if (size == maxSize) {
+         try {
+            wait(deadline);
+         } catch (InterruptedException e) {
+            System.out.println("Exception : InterruptException occurred");
+         } catch (IllegalMonitorStateException e) {
+            System.out.println("Exception : IllegalMonitorStateException occurred");
+         }
+      }
 
-      if (size == maxSize)
-         return false;
-
-      // Signal or broadcast that an empty slot is available (if needed)
-
-      super.put(value);
+      // Signal or broadcast that a full slot is available (if needed)
+      if (size == 0) {
+         notify();
+      }
 
       // Leave mutual exclusion
-      return true;
+      return super.put(value);
    }
 }
