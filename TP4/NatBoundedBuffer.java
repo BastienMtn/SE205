@@ -1,4 +1,3 @@
-import java.util.concurrent.Semaphore;
 import java.lang.InterruptedException;
 import java.util.concurrent.TimeUnit;
 
@@ -100,8 +99,6 @@ class NatBoundedBuffer extends BoundedBuffer {
    // waits no longer than the given deadline. Return the element if
    // successful. Otherwise, return NULL.
    synchronized Object poll(long deadline) {
-      long timeout;
-
       // Enter mutual exclusion
 
       // Wait until a full slot is available but wait
@@ -132,8 +129,6 @@ class NatBoundedBuffer extends BoundedBuffer {
    // waits no longer than the given deadline. Return 0 if not
    // successful. Otherwise, return 1.
    synchronized boolean offer(Object value, long deadline) {
-      long timeout;
-
       // Enter mutual exclusion
 
       // Wait until a empty slot is available but wait

@@ -174,7 +174,7 @@ int cond_protected_buffer_offer(protected_buffer_t * b, void * d, struct timespe
 
   // Signal or broadcast that a full slot is available in the
   // unprotected circular buffer (if needed)
-  if(circular_buffer_size(b->buffer)==1){
+  if(circular_buffer_size(b->buffer)==0){
     pthread_cond_signal(&b->fullslot);
   }
   
