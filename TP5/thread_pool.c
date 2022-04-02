@@ -3,6 +3,7 @@
 
 #include "thread_pool.h"
 #include "utils.h"
+#include "executor.h"
 
 // Create a thread pool. This pool must be protected against
 // concurrent accesses.
@@ -13,6 +14,7 @@ thread_pool_t * thread_pool_init(int core_pool_size, int max_pool_size) {
   thread_pool->core_pool_size = core_pool_size;
   thread_pool->max_pool_size  = max_pool_size;
   thread_pool->size           = 0;
+  pthread_mutex_init(&thread_pool->mutex, NULL);
   return thread_pool;
 }
 
@@ -28,13 +30,18 @@ int pool_thread_create (thread_pool_t * thread_pool,
   pthread_t thread;
 
   // Protect structure against concurrent accesses
+  pthread_mutex_lock(&thread_pool->mutex);
 
   // Always create a thread as long as there are less then
   // core_pool_size threads created.
-  if (thread_pool->size < thread_pool->core_pool_size) {
+  if (thread_pool->size < thread_pool->core_pool_size){
+    pthread_create(&thread, NULL, main, future);//((future_t*)future)->callable->params);
+    done=1;
+    thread_pool->size++;
   }
 
   // Do not protect the structure against concurrent accesses anymore
+  pthread_mutex_unlock(&thread_pool->mutex);
 
   if (done)
     printf("%06ld [pool_thread] created\n", relative_clock());

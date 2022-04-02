@@ -78,7 +78,7 @@ void readFile (char * filename) {
   jobs = (job_t *) malloc ((ulong) (job_table_size) * sizeof(job_t));
   for (i = 0; i < job_table_size; i++) {
     getLong (file, (long *) &jobs[i].exec_time, __FILE__, __LINE__);
-    // printf ("exec_time[%lu]=%ld\n", i, jobs[i].exec_time);
+    printf ("exec_time[%lu]=%ld\n", i, jobs[i].exec_time);
   }
 
   

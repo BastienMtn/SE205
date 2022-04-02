@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
 
   // Read the configuration parameters of the scenario
   readFile(argv[1]);
+  printf("jusquici tout va bien");
 
   // To each job is associated a callable and a future. Callables and
   // Futures correspond to their definition in Java Executor. A
